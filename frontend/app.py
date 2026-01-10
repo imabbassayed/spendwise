@@ -71,3 +71,43 @@ if df is not None:
                 fig.update_yaxes(title_text="Spending (USD)")
 
                 st.plotly_chart(fig, use_container_width=True)
+
+
+st.divider()
+st.header("Categorize Spending With AI")
+
+if df is not None:
+    col1, col2 = st.columns([6, 1])
+    with col2:
+        categorize_clicked = st.button("Categorize")
+
+    if categorize_clicked:
+        with st.spinner("Categorizing transactions using AI..."):
+            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
+            categories_csv = ",".join(user_categories["Category"].tolist())
+
+            resp = requests.post(
+                f"{API_BASE}/categorize_spending",
+                files=files,
+                data={"categories": categories_csv}
+            )
+
+            result = resp.json()
+            st.json(result)
+
+            if "error" in result:
+                st.error(result["error"])
+            else:
+                st.success("Categorization complete!")
+
+                # --- Pie Chart ---
+                summary = result["summary"]
+                labels = list(summary.keys())
+                values = list(summary.values())
+
+                fig = px.pie(
+                    names=labels,
+                    values=values,
+                    title="Spending Breakdown by Category"
+                )
+                st.plotly_chart(fig, use_container_width=True)
