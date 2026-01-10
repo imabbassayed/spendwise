@@ -10,7 +10,7 @@ import config
 
 
 
-def categories():
+def category_manager():
     # Initialize once
     if "categories_df" not in st.session_state:
         st.session_state.categories_df = pd.DataFrame({
