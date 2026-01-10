@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Columns required in every uploaded CSV
-REQUIRED_COLUMNS = ["date", "description", "amount"]
+REQUIRED_COLUMNS = ["date", "merchant", "amount"]
 
 def validate_csv(file):
     """

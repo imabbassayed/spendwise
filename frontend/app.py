@@ -4,24 +4,34 @@ import requests
 import plotly.express as px
 
 
-from frontend.components.category_manager import category_manager
+from components.category_manager import category_manager
 
 API_BASE = "http://127.0.0.1:5000"
 
-st.title("SpendWise")
 st.set_page_config(
     page_title="SpendWise",
     page_icon="💰",
 )
 
 
-st.header("Step 1: Set Your Spending Categories")
+
+st.title("💰 SpendWise")
+st.markdown("""
+Your personal AI-powered financial assistant — helping you understand where your money goes,
+spot patterns in your spending, and gain control over your financial habits with clear,
+intuitive insights.
+""")
+
+
+st.subheader("🔧 Set Your Categories")
+st.caption("Define the categories that matter to you — we'll use them to classify your transactions.")
 
 user_categories = category_manager()
 
-st.divider()
 
-st.header("Step 2: Upload Your Spendings")
+st.subheader("📤 Upload Your Transactions")
+st.caption("Upload a CSV file containing your transaction history (date, merchant, amount).")
+
 
 # Allow the user to upload a CSV file
 uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
@@ -29,19 +39,10 @@ uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 df = None
 
 if uploaded_file is not None:
-    # Show a quick preview of the uploaded data
+    # Load the CSV file
     df = pd.read_csv(uploaded_file)
-    #st.subheader("Local Preview")
-    #st.dataframe(df.head())
 
-    # Send the file to the Flask backend for processing
-    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
-    response = requests.post(f"{API_BASE}/upload", files=files)
-
-    # Display the backend response (preview, filename, rows)
-    #st.subheader("Backend Response")
-    #st.json(response.json())
-
+ 
 # Analyize Button
 if df is not None:
     col1, col2 = st.columns([6, 1])   # Left wide, right narrow
@@ -53,61 +54,37 @@ if df is not None:
             files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
 
             # Draw spending line chart
-            resp = requests.post(f"{API_BASE}/draw_spending", files=files)
+            resp = requests.post(f"{API_BASE}/analyze", files=files)
 
             if resp.status_code != 200:
                 st.error("Error analyzing data.")
             else:
+                st.divider()
+                st.header("📝 Analysis Results")
                 result = resp.json()
 
-                fig = px.line(
-                    x=result["months"],
-                    y=result["totals"],
-                    markers=True,
-                    title="Monthly Spending Overview"
-                )
 
+                # Display basic spending metrics to give a quick overview
+                st.subheader("1. Spending Overview")
+                col1, col2 = st.columns(2)
+                col1.metric("Total Spending", f"${result['total_spending']}")
+                col2.metric("Average Monthly Spending", f"${result['avg_monthly']}")
+
+                # Plot the monthly spending trend to show changes over time
+                st.subheader("2. Monthly Spending Trend")
+                fig = px.line(
+                    x=result["monthly_chart"]["months"],
+                    y=result["monthly_chart"]["totals"],
+                    markers=True,
+                )
                 fig.update_xaxes(title_text="Month", type="category")
                 fig.update_yaxes(title_text="Spending (USD)")
-
                 st.plotly_chart(fig, use_container_width=True)
 
-
-st.divider()
-st.header("Categorize Spending With AI")
-
-if df is not None:
-    col1, col2 = st.columns([6, 1])
-    with col2:
-        categorize_clicked = st.button("Categorize")
-
-    if categorize_clicked:
-        with st.spinner("Categorizing transactions using AI..."):
-            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
-            categories_csv = ",".join(user_categories["Category"].tolist())
-
-            resp = requests.post(
-                f"{API_BASE}/categorize_spending",
-                files=files,
-                data={"categories": categories_csv}
-            )
-
-            result = resp.json()
-            st.json(result)
-
-            if "error" in result:
-                st.error(result["error"])
-            else:
-                st.success("Categorization complete!")
-
-                # --- Pie Chart ---
-                summary = result["summary"]
-                labels = list(summary.keys())
-                values = list(summary.values())
-
-                fig = px.pie(
-                    names=labels,
-                    values=values,
-                    title="Spending Breakdown by Category"
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                # List recurring transactions that look like subscriptions
+                st.subheader("3.  Subscriptions")
+                if len(result["subscriptions"]) == 0:
+                    st.caption("No recurring transactions detected.")
+                else:
+                    st.table(result["subscriptions"])
+                
