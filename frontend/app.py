@@ -63,6 +63,7 @@ if df is not None:
             else:
                 st.divider()
                 st.header("📝 Analysis Results")
+                                st.warning("Section 4-7 requires OpenAI API access and if connection fails, categories are assigned randomly for demo purposes.")
                 result = resp.json()
 
 
@@ -137,8 +138,7 @@ if df is not None:
                     st.caption("No significant anomalies detected.")
                 else:
                     for category, anomaly_list in result["anomalies"].items():
-                        st.markdown(f"### ⚠️ {category} Anomalies")
-
+                        st.markdown(f"#### ⚠️ {category} Anomalies")
                         for a in anomaly_list:
                             st.write(
                                 f"- **{a['month']}**: Spent **${a['amount']}**, "

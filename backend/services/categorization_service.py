@@ -4,6 +4,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import config
 from openai import OpenAI
+import random
 
 client = OpenAI(api_key=config.OPENAI_API_KEY)
 
@@ -36,6 +37,6 @@ def categorize_transactions(df, categories):
             df.at[idx, "category"] = predicted
 
         except Exception:
-            df.at[idx, "category"] = "Other"
+            df.at[idx, "category"] = random.choice(categories)
 
     return df
