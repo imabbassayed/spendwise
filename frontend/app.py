@@ -1,0 +1,24 @@
+import streamlit as st
+import pandas as pd
+import requests
+
+API_BASE = "http://127.0.0.1:5000"
+
+st.title("SpendWise")
+
+# Allow the user to upload a CSV file
+uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+
+if uploaded_file is not None:
+    # Show a quick preview of the uploaded data
+    df = pd.read_csv(uploaded_file)
+    st.subheader("Local Preview")
+    st.dataframe(df.head())
+
+    # Send the file to the Flask backend for processing
+    files = {"file": uploaded_file}
+    response = requests.post(f"{API_BASE}/upload", files=files)
+
+    # Display the backend response (preview, filename, rows)
+    st.subheader("Backend Response")
+    st.json(response.json())
