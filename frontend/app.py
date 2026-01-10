@@ -63,7 +63,7 @@ if df is not None:
             else:
                 st.divider()
                 st.header("📝 Analysis Results")
-                                st.warning("Section 4-7 requires OpenAI API access and if connection fails, categories are assigned randomly for demo purposes.")
+                st.warning("Section 4-7 requires OpenAI API access and if connection fails, categories are assigned randomly for demo purposes.")
                 result = resp.json()
 
 
