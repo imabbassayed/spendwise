@@ -8,21 +8,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 import config
 
 
-
-
 def category_manager():
-    # Initialize once
+    # Initialize only once, building DataFrame from list of dicts
     if "categories_df" not in st.session_state:
-        st.session_state.categories_df = pd.DataFrame({
-            "Category": config.DEFAULT_CATEGORIES.copy(),
-            "Priority": ["Should Keep"] * len(config.DEFAULT_CATEGORIES)
-        })
-
-    st.write("### Manage Categories")
+        st.session_state.categories_df = pd.DataFrame(config.DEFAULT_CATEGORIES)
 
     df = st.session_state.categories_df.copy()
 
-    # Editable table
+    # Editable table for user to modify categories + priorities
     edited_df = st.data_editor(
         df,
         use_container_width=True,
@@ -35,17 +28,16 @@ def category_manager():
                 options=config.PRIORITY_OPTIONS
             ),
         },
-        key="categories_editor"
     )
-    
-    # Ensure required columns exist
+
+    # Ensure both columns exist even if user edits structure
     if "Category" not in edited_df.columns:
         edited_df["Category"] = ""
 
     if "Priority" not in edited_df.columns:
         edited_df["Priority"] = "Should Keep"
 
-    # Clean category values → remove NaN / blanks
+    # Strip whitespace & clean invalid entries
     edited_df["Category"] = (
         edited_df["Category"]
         .fillna("")
@@ -53,10 +45,10 @@ def category_manager():
         .str.strip()
     )
 
-    # Remove rows where Category is empty
+    # Remove empty rows
     cleaned_df = edited_df[edited_df["Category"] != ""]
 
-    # Reset index to avoid new numeric category names
+    # Reset index for consistency
     cleaned_df = cleaned_df.reset_index(drop=True)
 
     # Update session state immediately after any changes

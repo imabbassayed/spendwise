@@ -13,6 +13,7 @@ DEFAULT_CATEGORIES = [
     {"Category": "Entertainment & Subscriptions", "Priority": "Can Reduce"},
 ]
 
+
 PRIORITY_OPTIONS = ["Must Keep", "Should Keep", "Can Reduce"]
 
 

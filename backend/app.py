@@ -8,6 +8,7 @@ from services.categorization_service import categorize_transactions
 from services.category_monthly_service import category_monthly
 from services.priority_service import attach_priorities, priority_totals, priority_monthly
 from services.anomaly_service import detect_category_anomalies
+from services.goal_recommendation_service import recommend_savings_actions
 
 app = Flask(__name__)
 
@@ -27,6 +28,12 @@ def analyze():
     
     if "categories" not in request.form:
         return jsonify({"error": "No category list provided"}), 400
+    
+    # Read user-defined categories, priorities, and goal amount
+    categories = request.form["categories"].split(",")
+    priorities = request.form.getlist("priority_map[]")
+    priority_map = dict(zip(categories, priorities))
+    goal_amount = float(request.form.get("goal_amount", 0))
 
 
     file = request.files["file"]
@@ -74,6 +81,12 @@ def analyze():
     # Detect anomalies in category spending
     anomalies = detect_category_anomalies(df)
 
+    # Generate savings recommendations based on priorities and goal amount
+    recommendation = recommend_savings_actions(
+        category_spending= category_spend,
+        priority_map=priority_map,
+        goal_amount=goal_amount
+    )
 
 
     
@@ -91,6 +104,7 @@ def analyze():
         "priority_spending": priority_spend,
         "priority_monthly": priority_month_data,
         "anomalies": anomalies,
+        "recommendation": recommendation,
         "categorized": df.to_dict(orient="records")
     })
 

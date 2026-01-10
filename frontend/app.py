@@ -36,6 +36,15 @@ st.caption("Upload a CSV file containing your transaction history (date, merchan
 # Allow the user to upload a CSV file
 uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 
+
+st.subheader("🎯 Set Your Monthly Savings Goal")
+goal_amount = st.number_input(
+    "How much do you want to save this month? (USD)",
+    min_value=10.0,
+    value=300.0,
+    step=10.0
+)
+
 df = None
 
 if uploaded_file is not None:
@@ -45,25 +54,27 @@ if uploaded_file is not None:
  
 # Analyize Button
 if df is not None:
+    st.divider()
+
     col1, col2 = st.columns([6, 1])   # Left wide, right narrow
     with col2:
         analyze_clicked = st.button("Analyze")
 
     if analyze_clicked:
         with st.spinner("Processing your spending..."):
+            st.session_state.goal_amount = goal_amount
             files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
             categories_csv = ",".join(user_categories["Category"].tolist())
             priority_map = user_categories.set_index("Category")["Priority"].to_dict()
 
             # Draw spending line chart
-            resp = requests.post(f"{API_BASE}/analyze", files=files, data={"categories": categories_csv, "priority_map": json.dumps(priority_map)})
-            
+            resp = requests.post(f"{API_BASE}/analyze", files=files, data={"categories": categories_csv, "priority_map": json.dumps(priority_map), "goal_amount": goal_amount})
+                        
             if resp.status_code != 200:
                 st.error("Error analyzing data.")
             else:
                 st.divider()
                 st.header("📝 Analysis Results")
-                st.warning("Section 4-7 requires OpenAI API access and if connection fails, categories are assigned randomly for demo purposes.")
                 result = resp.json()
 
 
@@ -92,6 +103,8 @@ if df is not None:
                     st.caption("No recurring transactions detected.")
                 else:                
                     st.dataframe(result["subscriptions"], use_container_width=True)
+
+                st.warning("Sections 4–7 rely on OpenAI. If the API cannot be reached, SpendWise AI will generate categories automatically so you can continue the demo.")
 
                 
                 # Show how much was spent in each category after AI classification
@@ -144,3 +157,7 @@ if df is not None:
                                 f"- **{a['month']}**: Spent **${a['amount']}**, "
                                 f"Z-score = `{a['z_score']:.2f}` (unusual change)"
                     )
+                
+                # Generate and show personalized savings recommendations
+                st.header("9. Savings Strategy Recommendation")
+                st.markdown(result["recommendation"])   
