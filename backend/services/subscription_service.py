@@ -6,4 +6,4 @@ def detect_subscriptions(df):
         .reset_index(name="months")
     )
     subs = subs[subs["months"] >= 2]  # appears 2+ months = possible subscription
-    return subs[["amount", "merchant"]].to_dict(orient="records")
+    return subs[["merchant", "amount"]].to_dict(orient="records")

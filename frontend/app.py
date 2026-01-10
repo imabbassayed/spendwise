@@ -52,10 +52,10 @@ if df is not None:
     if analyze_clicked:
         with st.spinner("Processing your spending..."):
             files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
+            categories_csv = ",".join(user_categories["Category"].tolist())
 
             # Draw spending line chart
-            resp = requests.post(f"{API_BASE}/analyze", files=files)
-
+            resp = requests.post(f"{API_BASE}/analyze", files=files, data={"categories": categories_csv})
             if resp.status_code != 200:
                 st.error("Error analyzing data.")
             else:
@@ -87,20 +87,20 @@ if df is not None:
                 subs = result["subscriptions"]
                 if len(subs) == 0:
                     st.caption("No recurring transactions detected.")
-                else:
-                    # Convert to DataFrame for proper formatting
-                    subs_df = pd.DataFrame(subs)
+                else:                
+                    st.dataframe(result["subscriptions"], use_container_width=True)
 
-                    # Rename columns for readability
-                    subs_df = subs_df.rename(columns={
-                        "merchant": "Merchant",
-                        "amount": "Amount (USD)"
-                    })
-
-                    # Display clean table without index
-                    st.table(subs_df.style.hide(axis="index"))
                 
                 # Show how much was spent in each category after AI classification
-                st.subheader("4. Spending by Category (AI-Classified)")
+                st.subheader("4. Spending by Category ")
                 st.bar_chart(result["category_spending"])
+
+
+                # Present spending broken down per category for each month
+                st.subheader("5. Category Spending by Month")
+                st.dataframe(result["category_monthly"], use_container_width=True)
+
+                # Show each transaction with the AI-assigned category
+                #st.subheader("6. Categorized Transactions")
+                #st.dataframe(result["categorized"], use_container_width=True)
                 

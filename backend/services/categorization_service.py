@@ -21,7 +21,7 @@ def categorize_transactions(df, categories):
 
         try:
             res = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=config.MODEL_NAME_CATEGORIZER,
                 temperature=0,
                 messages=[
                     {"role": "system", "content": config.SYSTEM_PROMPT_CATEGORIZER},
