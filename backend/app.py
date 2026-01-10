@@ -6,6 +6,7 @@ from services.analysis_service import compute_basic_stats, compute_monthly_chart
 from services.subscription_service import detect_subscriptions
 from services.categorization_service import categorize_transactions
 from services.category_monthly_service import category_monthly
+from services.priority_service import attach_priorities, priority_totals, priority_monthly
 
 app = Flask(__name__)
 
@@ -59,6 +60,16 @@ def analyze():
 
     # Compute category spending by month
     category_month_data = category_monthly(df)
+
+    # Attach priority levels to each categorized transaction
+    df = attach_priorities(df, request.form["priority_map"])
+
+    # Compute spending totals by priority
+    priority_spend = priority_totals(df)
+
+    # Compute month × priority spending
+    priority_month_data = priority_monthly(df)
+
     
 
    
@@ -71,6 +82,8 @@ def analyze():
         "subscriptions": subscriptions,
         "category_spending": category_spend,
         "category_monthly": category_month_data,
+        "priority_spending": priority_spend,
+        "priority_monthly": priority_month_data,
         "categorized": df.to_dict(orient="records")
     })
 

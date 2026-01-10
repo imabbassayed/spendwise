@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import plotly.express as px
-
+import json
 
 from components.category_manager import category_manager
 
@@ -53,9 +53,11 @@ if df is not None:
         with st.spinner("Processing your spending..."):
             files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
             categories_csv = ",".join(user_categories["Category"].tolist())
+            priority_map = user_categories.set_index("Category")["Priority"].to_dict()
 
             # Draw spending line chart
-            resp = requests.post(f"{API_BASE}/analyze", files=files, data={"categories": categories_csv})
+            resp = requests.post(f"{API_BASE}/analyze", files=files, data={"categories": categories_csv, "priority_map": json.dumps(priority_map)})
+            
             if resp.status_code != 200:
                 st.error("Error analyzing data.")
             else:
@@ -95,12 +97,32 @@ if df is not None:
                 st.subheader("4. Spending by Category ")
                 st.bar_chart(result["category_spending"])
 
+                labels = list(result["category_spending"].keys())
+                values = list(result["category_spending"].values())
+
+                fig = px.pie(
+                    names=labels,
+                    values=values,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+
 
                 # Present spending broken down per category for each month
                 st.subheader("5. Category Spending by Month")
                 st.dataframe(result["category_monthly"], use_container_width=True)
 
-                # Show each transaction with the AI-assigned category
-                #st.subheader("6. Categorized Transactions")
-                #st.dataframe(result["categorized"], use_container_width=True)
-                
+                st.subheader("6. Spending by Priority")
+
+                # Bar chart
+                st.bar_chart(result["priority_spending"])
+
+                # Pie chart
+                labels = list(result["priority_spending"].keys())
+                values = list(result["priority_spending"].values())
+
+                fig = px.pie(names=labels, values=values)
+                st.plotly_chart(fig, use_container_width=True)
+
+                st.subheader("7. Priority Spending by Month")
+                st.dataframe(result["priority_monthly"], use_container_width=True)
