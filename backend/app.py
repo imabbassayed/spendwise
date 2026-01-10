@@ -25,7 +25,7 @@ def upload_csv():
     
     df = result  # validated DataFrame
 
-    # Return first few rows as a  preview
+    # Return first few rows as a preview
     preview = df.head().to_dict(orient="records")
 
     return jsonify({

@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 import requests
+import plotly.express as px
+
+
+from components.categories import categories
 
 API_BASE = "http://127.0.0.1:5000"
 
@@ -9,6 +13,16 @@ st.set_page_config(
     page_title="SpendWise",
     page_icon="💰",
 )
+
+
+st.header("Step 1: Set Your Spending Categories")
+
+user_categories = categories()
+
+
+
+
+st.divider()
 
 # Allow the user to upload a CSV file
 uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
