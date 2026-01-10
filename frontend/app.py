@@ -83,8 +83,24 @@ if df is not None:
 
                 # List recurring transactions that look like subscriptions
                 st.subheader("3.  Subscriptions")
-                if len(result["subscriptions"]) == 0:
+
+                subs = result["subscriptions"]
+                if len(subs) == 0:
                     st.caption("No recurring transactions detected.")
                 else:
-                    st.table(result["subscriptions"])
+                    # Convert to DataFrame for proper formatting
+                    subs_df = pd.DataFrame(subs)
+
+                    # Rename columns for readability
+                    subs_df = subs_df.rename(columns={
+                        "merchant": "Merchant",
+                        "amount": "Amount (USD)"
+                    })
+
+                    # Display clean table without index
+                    st.table(subs_df.style.hide(axis="index"))
+                
+                # Show how much was spent in each category after AI classification
+                st.subheader("4. Spending by Category (AI-Classified)")
+                st.bar_chart(result["category_spending"])
                 

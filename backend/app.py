@@ -1,16 +1,10 @@
 from flask import Flask, request, jsonify
-from openai import OpenAI
 import pandas as pd
-import sys
-import os
-
-# Add root directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-import config
-
 
 from utils.csv_validation import validate_csv
 from services.analysis_service import compute_basic_stats, compute_monthly_chart
+from services.subscription_service import detect_subscriptions
+from services.categorization_service import categorize_transactions
 
 app = Flask(__name__)
 
@@ -47,6 +41,21 @@ def analyze():
     # Compute monthly spending chart
     months, totals = compute_monthly_chart(df)
 
+    # Detect recurring subscription-like charges
+    subscriptions = detect_subscriptions(df)
+    print("Subscriptions:", subscriptions)
+
+    # Read user-defined categories
+    categories = request.form["categories"].split(",")
+
+    # Categorize each merchant using OpenAI
+    df = categorize_transactions(df, categories)
+
+    # Compute category totals
+    category_spend = df.groupby("category")["amount"].sum().to_dict()
+
+    # Compute category spending by month
+    category_month_data = category_monthly(df)
     
 
    
@@ -56,6 +65,8 @@ def analyze():
         "total_spending": total,
         "avg_monthly": avg,
         "monthly_chart": {"months": months, "totals": totals},
+        "subscriptions": subscriptions,
+        "category_spending": category_spend,
     })
 
 
@@ -110,79 +121,4 @@ def upload_csv():
         "filename": file.filename,
         "rows": len(df),
         "preview": preview
-    })
-
-
-client = OpenAI(api_key=config.OPENAI_API_KEY)
-
-SYSTEM_PROMPT = config.SYSTEM_PROMPT_CATEGORIZER
-
-@app.route("/categorize_spending", methods=["POST"])
-def categorize_spending():
-    # Validate input
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-
-    if "categories" not in request.form:
-        return jsonify({"error": "No category list provided"}), 400
-
-    # Clean categories
-    categories = [c.strip() for c in request.form["categories"].split(",")]
-
-    # Read CSV
-    file = request.files["file"]
-    file.seek(0)
-    df = pd.read_csv(file)
-
-    # Validate required columns
-    for col in ["date", "merchant", "amount"]:
-        if col not in df.columns:
-            return jsonify({"error": f"Missing column: {col}"}), 400
-
-    df["category"] = ""
-
-  
-
-    # Process each merchant
-    for idx, row in df.iterrows():
-        merchant = str(row["merchant"])
-
-        prompt = f"""
-        Merchant: "{merchant}"
-        Allowed categories: {categories}
-        Respond with ONLY the exact category name.
-        """
-
-        try:
-            response = client.chat.completions.create(
-                model=config.MODEL_NAME_CATEGORIZER,
-                temperature=0,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            pred = response.choices[0].message.content.strip()
-
-
-            # Validate model output
-            if pred not in categories:
-                pred = "Other" if "Other" in categories else categories[0]
-
-            df.at[idx, "category"] = pred
-
-        except Exception as e:
-            print("❌ OpenAI Error:", e)
-            df.at[idx, "category"] = "Other" if "Other" in categories else categories[0]
-
-
-    # Summary for pie chart
-    summary = df.groupby("category")["amount"].sum().to_dict()
-
-    categorized_list = df[["merchant", "amount", "category"]].to_dict(orient="records")
-
-    return jsonify({
-        "categorized": categorized_list,
-        "summary": summary
     })
