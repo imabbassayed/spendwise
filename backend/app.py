@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 
+from utils.csv_validation import validate_csv
 app = Flask(__name__)
 
 @app.route("/health")
@@ -17,14 +18,14 @@ def upload_csv():
 
     file = request.files["file"]
 
-    # Allow only CSV files
-    if not file.filename.endswith(".csv"):
-        return jsonify({"error": "Only CSV files allowed"}), 400
+    # CSV validation & required columns check
+    valid, result = validate_csv(file)
+    if not valid:
+        return jsonify({"error": result}), 400
+    
+    df = result  # validated DataFrame
 
-    # Load the CSV into a Pandas DataFrame
-    df = pd.read_csv(file)
-
-    # Return first few rows as a quick preview
+    # Return first few rows as a  preview
     preview = df.head().to_dict(orient="records")
 
     return jsonify({
