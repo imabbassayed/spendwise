@@ -7,6 +7,7 @@ from services.subscription_service import detect_subscriptions
 from services.categorization_service import categorize_transactions
 from services.category_monthly_service import category_monthly
 from services.priority_service import attach_priorities, priority_totals, priority_monthly
+from services.anomaly_service import detect_category_anomalies
 
 app = Flask(__name__)
 
@@ -70,6 +71,11 @@ def analyze():
     # Compute month × priority spending
     priority_month_data = priority_monthly(df)
 
+    # Detect anomalies in category spending
+    anomalies = detect_category_anomalies(df)
+
+
+
     
 
    
@@ -84,6 +90,7 @@ def analyze():
         "category_monthly": category_month_data,
         "priority_spending": priority_spend,
         "priority_monthly": priority_month_data,
+        "anomalies": anomalies,
         "categorized": df.to_dict(orient="records")
     })
 

@@ -124,5 +124,23 @@ if df is not None:
                 fig = px.pie(names=labels, values=values)
                 st.plotly_chart(fig, use_container_width=True)
 
+                # Monthly priority spending table
+
                 st.subheader("7. Priority Spending by Month")
                 st.dataframe(result["priority_monthly"], use_container_width=True)
+
+                # Highlight any anomalies detected in category spending
+
+                st.subheader("8. Spending Anomalies")
+
+                if len(result["anomalies"]) == 0:
+                    st.caption("No significant anomalies detected.")
+                else:
+                    for category, anomaly_list in result["anomalies"].items():
+                        st.markdown(f"### ⚠️ {category} Anomalies")
+
+                        for a in anomaly_list:
+                            st.write(
+                                f"- **{a['month']}**: Spent **${a['amount']}**, "
+                                f"Z-score = `{a['z_score']:.2f}` (unusual change)"
+                    )

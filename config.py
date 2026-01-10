@@ -3,12 +3,14 @@ import os
 
 # Configuration for SpendWise
 DEFAULT_CATEGORIES = [
-    "Food & Dining",
-    "Transport",
-    "Shopping",
-    "Entertainment",
-    "Groceries",
-    "Bills",
+    {"Category": "Housing & Utilities", "Priority": "Must Keep"},
+    {"Category": "Groceries & Essentials", "Priority": "Must Keep"},
+    {"Category": "Healthcare & Insurance", "Priority": "Must Keep"},
+    {"Category": "Transportation", "Priority": "Should Keep"},
+    {"Category": "Work & Education", "Priority": "Should Keep"},
+    {"Category": "Dining & Cafés", "Priority": "Can Reduce"},
+    {"Category": "Shopping & Personal", "Priority": "Can Reduce"},
+    {"Category": "Entertainment & Subscriptions", "Priority": "Can Reduce"},
 ]
 
 PRIORITY_OPTIONS = ["Must Keep", "Should Keep", "Can Reduce"]
@@ -35,3 +37,5 @@ RULES:
 """
 # OpenAI model for merchant-to-category classification.
 MODEL_NAME_CATEGORIZER = "gpt-4o-mini"
+
+ANAMOLY_DETECTION_Z_THRESHOLD = 1.15
