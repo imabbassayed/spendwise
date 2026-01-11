@@ -45,6 +45,12 @@ pytest -q
 
 ---
 
+## 🐳 Docker
+
+To be implemented.
+
+---
+
 ## 📁 Sample Dataset
 
 A sample CSV for testing is available at:
@@ -53,6 +59,8 @@ dataset/sample.csv
 
 ---
 
-## 🐳 Docker
+## 📁 Documentation
+System desgin document is available at root directory:
 
-To be implemented.
+documentation.pdf
+
