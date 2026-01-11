@@ -104,7 +104,7 @@ if df is not None:
                 else:                
                     st.dataframe(result["subscriptions"], use_container_width=True)
 
-                st.warning("Sections 4–7 rely on OpenAI. If the API cannot be reached, SpendWise AI will generate categories automatically so you can continue the demo.")
+                st.warning("Sections 4–7 rely on OpenAI. If the API cannot be reached, SpendWise  will randomly assign categories to your transactions.")
 
                 
                 # Show how much was spent in each category after AI classification
