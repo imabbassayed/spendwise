@@ -19,6 +19,9 @@ export FLASK_APP=app.py
 
 flask run
 
+--
+
+Flask should run on **5000** port.
 
 For Sections **4–7** and **9**, OpenAI API access is required.  
 
