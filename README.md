@@ -2,6 +2,9 @@
 
 SpendWise s a lightweight financial insights tool that analyzes monthly spending, categorizes transactions, detects anomalies, and generates AI-powered savings recommendations.
 
+![Demo GIF](/demo.gif)
+
+
 ## 📌 How to Run the Project
 
 ### Install Dependencies
